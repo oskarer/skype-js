@@ -1,6 +1,9 @@
 {
-  "extends": "airbnb",  
+  "extends": "airbnb",
   "rules": {
-    "no-console": 0
+    "no-console": 0,
+    "no-use-before-define": 0,
+    "no-unused-vars": [2, { "args": "none" }],
+    "no-shadow": 0
   }
 }
