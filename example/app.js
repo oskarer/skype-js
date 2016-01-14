@@ -1,11 +1,40 @@
 import log from 'loglevel';
 import minimist from 'minimist';
-import { login } from '..';
+import { login, getContacts, getRegistrationToken } from '..';
 
 const argv = minimist(process.argv.slice(2));
 
-log.setLevel('info');
+const { username, password } = argv;
+let { skypeToken } = argv;
 
-login(argv._[0], argv._[1])
-.then((result) => { log.info(result); })
-.catch((error) => { log.error(error); });
+log.setLevel('debug');
+
+if (!skypeToken) {
+  login(username, password)
+  .then((result) => {
+    log.info('Logged in', result);
+    skypeToken = result.skypeToken;
+    loadContacts(skypeToken, username);
+    loadRegistrationToken(skypeToken);
+  })
+  .catch((error) => { log.error(error); });
+} else {
+  loadContacts(skypeToken, username);
+  loadRegistrationToken(skypeToken);
+}
+
+function loadRegistrationToken(skypeToken) {
+  getRegistrationToken(skypeToken)
+  .then((registrationToken) => {
+    log.info('Registration token expires', registrationToken.expires);
+  })
+  .catch((error) => { log.error(error); });
+}
+
+function loadContacts(skypeToken, username) {
+  getContacts(skypeToken, username)
+  .then((contacts) => {
+    log.info('Contacts: ', contacts.length);
+  })
+  .catch((error) => { log.error(error); });
+}

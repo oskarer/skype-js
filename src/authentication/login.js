@@ -1,14 +1,14 @@
 import Deferred from 'es6-deferred';
 import log from 'loglevel';
-import request from 'request';
 import cheerio from 'cheerio';
-import { SKYPEWEB_LOGIN_URL } from './constants';
-import { getTimezone, getCurrentTime } from './utils';
+import request from '../request';
+import { LOGIN_URL } from '../constants';
+import { getTimezone, getCurrentTime } from '../utils';
 
 
 export function login(username, password) {
   log.info(username, password);
-  log.info(SKYPEWEB_LOGIN_URL);
+  log.info(LOGIN_URL);
   return sendLoginRequest(username, password);
 }
 
@@ -19,7 +19,7 @@ function sendLoginRequest(username, password) {
     const timezone_field = getTimezone(); // eslint-disable-line camelcase
     const js_time = getCurrentTime(); // eslint-disable-line camelcase
     const postData = {
-      url: SKYPEWEB_LOGIN_URL,
+      url: LOGIN_URL,
       form: {
         username,
         password,
@@ -35,7 +35,7 @@ function sendLoginRequest(username, password) {
 
   function getFormData() {
     const deferred = new Deferred();
-    request(SKYPEWEB_LOGIN_URL, (error, response, body) => {
+    request(LOGIN_URL, (error, response, body) => {
       if (!error && response.statusCode === 200) {
         const $ = cheerio.load(body);
         const pie = $('input[name="pie"]').val();
