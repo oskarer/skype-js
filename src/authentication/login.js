@@ -1,15 +1,22 @@
 import Deferred from 'es6-deferred';
-import log from 'loglevel';
 import cheerio from 'cheerio';
+import Promise from 'bluebird';
+import log from 'loglevel';
+import storage from '../storage';
 import request from '../request';
 import { LOGIN_URL } from '../constants';
 import { getTimezone, getCurrentTime } from '../utils';
 
 
 export function login(username, password) {
-  log.info(username, password);
-  log.info(LOGIN_URL);
-  return sendLoginRequest(username, password);
+  return sendLoginRequest(username, password)
+    .then((result) => {
+      log.info(result.expiryDate);
+      return Promise.all([
+        storage.setItem('skypeToken', result.skypeToken),
+        storage.setItem('stExpiryDate', result.expiryDate),
+      ]);
+    });
 }
 
 function sendLoginRequest(username, password) {
@@ -58,9 +65,14 @@ function sendLoginRequest(username, password) {
       if (!error && response.statusCode === 200) {
         const $ = cheerio.load(body);
         const skypeToken = $('input[name="skypetoken"]').val();
-        const skypeTokenExpiresIn = parseInt($('input[name="expires_in"]').val(), 10);
+        const skypeTokenExpiresIn = parseInt($('input[name="expires_in"]')
+          .val(), 10);
         if (skypeToken && skypeTokenExpiresIn) {
-          deferred.resolve({ skypeToken, skypeTokenExpiresIn });
+          // skypeTokenExpiresIn is in seconds from now, convert to ISO
+          const timestamp = new Date().getTime();
+          const expiryDate =
+            new Date(timestamp + skypeTokenExpiresIn * 1000).toISOString();
+          deferred.resolve({ skypeToken, expiryDate });
         } else {
           deferred.reject('Login failed, credentials are incorrect or you\'ve' +
             ' hit a CAPTCHA wall: ' + $('.message_error').text());

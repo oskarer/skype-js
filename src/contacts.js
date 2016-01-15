@@ -1,9 +1,11 @@
 import Deferred from 'es6-deferred';
-import request from './request';
+import request from './utils/request';
+import log from 'loglevel';
 import { HTTPS, CONTACTS_HOST } from './constants';
 
 export function getContacts(skypeToken, username) {
   const deferred = new Deferred();
+  log.debug('Fetching contacts for', username);
   request(HTTPS + CONTACTS_HOST +
     '/contacts/v1/users/' + username + '/contacts',
     {
