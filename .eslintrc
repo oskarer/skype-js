@@ -1,11 +1,5 @@
 {
-  "env": {
-    "jasmine": true,
-  },
   "extends": "airbnb",
-  "plugins": [
-    "jasmine"
-  ],
   "rules": {
     "padded-blocks": 0,
     "no-console": 0,

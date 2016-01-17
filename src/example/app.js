@@ -1,7 +1,7 @@
-import log from 'loglevel';
 import Promise from 'bluebird';
+import log from 'loglevel';
 import prompt from 'prompt';
-import { start, login, getContacts, getRegistrationToken } from '../..';
+import skype from '../..';
 
 log.setLevel('debug');
 
@@ -18,57 +18,41 @@ const schema = {
 
 prompt.start();
 
-start()
-.then((result) => {
-  log.info('logged in', result);
-  client();
-})
-.catch((error) => {
-  log.error(error);
-  prompt.get(schema, (error, result) => {
-    if (result) {
-      start(result.username, result.password);
-    }
-  });
-});
+const promptGet = Promise.promisify(prompt.get);
 
+if (!skype.isLoggedIn()) {
+  promptGet(schema)
+  .then((result) => { return skype.login(result.username, result.password); })
+  .then((result) => {
+    log.info(result);
+    client();
+  })
+  .catch((error) => { log.error(error); });
+
+} else {
+  client();
+}
 
 function client() {
-  console.log('Simple skype-node client\n' +
-    '/help to print this info\n' +
-    '/contacts to get contacts\n');
+  console.log('\n\n#### skype-node ####\n' +
+    '/contacts to get contacts\n' +
+    '/messages to get messages\n' +
+    '/exit to exit');
   prompt.get('command', (error, result) => {
     if (result.command === '/contacts') {
-      console.log('getting contacts');
-      getContacts().then((contacts) => {
-        console.log('Num contacts: ', contacts.length);
-        client();
-      });
+      skype.contacts()
+      .then((contacts) => { console.log(contacts); })
+      .catch((error) => { console.log(error); })
+      .finally(() => { client(); });
+
+    } else if (result.command === '/messages') {
+      skype.messages()
+      .then((messages) => { console.log(messages); })
+      .catch((error) => { console.log(error); })
+      .finally(() => { client(); });
+
+    } else if (error || result.command === '/exit') {
+      process.exit();
     }
   });
 }
-
-
-// if (!skypeToken) {
-//   login(username, password)
-//   .then((result) => {
-//     log.info('Logged in', result);
-//     skypeToken = result.skypeToken;
-//     getBaseData(skypeToken, username);
-//   })
-//   .catch((error) => { log.error(error); });
-// } else {
-//   getBaseData(skypeToken, username);
-// }
-//
-// function getBaseData(skypeToken, username) {
-//   Promise.props({
-//     contacts: getContacts(skypeToken, username),
-//     registrationToken: getRegistrationToken(skypeToken),
-//   })
-//   .then((result) => {
-//     log.info('Registration token expires', result.registrationToken.expires);
-//     log.info('Contacts: ', result.contacts.length);
-//   })
-//   .catch((error) => { log.error(error); });
-// }

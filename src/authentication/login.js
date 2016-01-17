@@ -2,19 +2,33 @@ import Deferred from 'es6-deferred';
 import cheerio from 'cheerio';
 import Promise from 'bluebird';
 import log from 'loglevel';
-import storage from '../storage';
-import request from '../request';
-import { LOGIN_URL } from '../constants';
-import { getTimezone, getCurrentTime } from '../utils';
+import storage from '../utils/storage';
+import request from '../utils/request';
+import { LOGIN_URL, DEFAULT_MESSAGES_HOST } from '../constants';
+import { getRegistrationTokenParams } from './registrationToken';
+import { getTimezone, getCurrentTime } from '../utils/helpers';
 
 
 export function login(username, password) {
   return sendLoginRequest(username, password)
     .then((result) => {
-      log.info(result.expiryDate);
+      log.error(DEFAULT_MESSAGES_HOST);
       return Promise.all([
+        storage.setItem('messagesHost', DEFAULT_MESSAGES_HOST),
+        storage.setItem('username', username),
         storage.setItem('skypeToken', result.skypeToken),
         storage.setItem('stExpiryDate', result.expiryDate),
+      ])
+      .then(() => getRegistrationTokenParams(
+        result.skypeToken,
+        DEFAULT_MESSAGES_HOST));
+    })
+    .then((result) => {
+      return Promise.all([
+        storage.setItem('registrationTokenParams',
+          result.registrationTokenParams),
+        storage.setItem('messagesHost',
+          result.messagesHost),
       ]);
     });
 }
@@ -72,6 +86,7 @@ function sendLoginRequest(username, password) {
           const timestamp = new Date().getTime();
           const expiryDate =
             new Date(timestamp + skypeTokenExpiresIn * 1000).toISOString();
+          log.trace('Login request successful');
           deferred.resolve({ skypeToken, expiryDate });
         } else {
           deferred.reject('Login failed, credentials are incorrect or you\'ve' +

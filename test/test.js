@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
 describe('hello', () => {
   it('should be true', () => {
     expect(true).to.equal(true);
