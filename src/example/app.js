@@ -24,7 +24,7 @@ if (!skype.isLoggedIn()) {
   promptGet(schema)
   .then((result) => { return skype.login(result.username, result.password); })
   .then((result) => {
-    log.info(result);
+    log.info('LOGGED IN');
     client();
   })
   .catch((error) => { log.error(error); });

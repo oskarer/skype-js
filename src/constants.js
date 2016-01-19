@@ -9,3 +9,4 @@ export const DEFAULT_MESSAGES_HOST = 'client-s.gateway.messenger.live.com';
 export const LOGIN_URL = 'https://login.skype.com/login?method=skype&client_id=578134&redirect_uri=https%3A%2F%2Fweb.skype.com';
 export const SELF_DISPLAYNAME_URL = '/users/self/displayname';
 export const POLL_ENDPOINT = '/v1/users/ME/endpoints/SELF/subscriptions/0/poll';
+export const SUBSCRIPTION_ENDPOINT = '/v1/users/ME/endpoints/SELF/subscriptions';

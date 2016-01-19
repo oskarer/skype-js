@@ -6,13 +6,15 @@ import storage from '../utils/storage';
 import request from '../utils/request';
 import { LOGIN_URL, DEFAULT_MESSAGES_HOST } from '../constants';
 import { getRegistrationTokenParams } from './registrationToken';
+import { subscribeToResources } from './subscription';
 import { getTimezone, getCurrentTime } from '../utils/helpers';
 
 
 export function login(username, password) {
+  const getItem = Promise.promisify(storage.getItem);
+
   return sendLoginRequest(username, password)
     .then((result) => {
-      log.error(DEFAULT_MESSAGES_HOST);
       return Promise.all([
         storage.setItem('messagesHost', DEFAULT_MESSAGES_HOST),
         storage.setItem('username', username),
@@ -30,28 +32,33 @@ export function login(username, password) {
         storage.setItem('messagesHost',
           result.messagesHost),
       ]);
-    });
+    })
+    .then(() => Promise.all([
+      getItem('registrationTokenParams'),
+      getItem('messagesHost'),
+    ]))
+    .then((result) => subscribeToResources(...result));
 }
 
 function sendLoginRequest(username, password) {
   return getFormData()
-  .then((formData) => {
-    const { pie, etm } = formData;
-    const timezone_field = getTimezone(); // eslint-disable-line camelcase
-    const js_time = getCurrentTime(); // eslint-disable-line camelcase
-    const postData = {
-      url: LOGIN_URL,
-      form: {
-        username,
-        password,
-        pie,
-        etm,
-        timezone_field,
-        js_time,
-      },
-    };
-    return postLoginForm(postData);
-  });
+    .then((formData) => {
+      const { pie, etm } = formData;
+      const timezone_field = getTimezone(); // eslint-disable-line camelcase
+      const js_time = getCurrentTime(); // eslint-disable-line camelcase
+      const postData = {
+        url: LOGIN_URL,
+        form: {
+          username,
+          password,
+          pie,
+          etm,
+          timezone_field,
+          js_time,
+        },
+      };
+      return postLoginForm(postData);
+    });
 
 
   function getFormData() {
