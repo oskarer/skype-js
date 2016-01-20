@@ -1,3 +1,4 @@
+require('babel-polyfill');
 import Promise from 'bluebird';
 import log from 'loglevel';
 import prompt from 'prompt';
@@ -20,39 +21,46 @@ prompt.start();
 
 const promptGet = Promise.promisify(prompt.get);
 
-if (!skype.isLoggedIn()) {
-  promptGet(schema)
-  .then((result) => { return skype.login(result.username, result.password); })
-  .then((result) => {
-    log.info('LOGGED IN');
-    client();
-  })
-  .catch((error) => { log.error(error); });
+async function client() {
+  console.log('\n\n#### skype-node ####\n' +
+  '/contacts to get contacts\n' +
+  '/messages to get messages\n' +
+  '/exit to exit');
+  const prompt = await promptGet('command');
 
-} else {
+  if (prompt.command === '/contacts') {
+    try {
+      console.log(await skype.contacts());
+    } catch (error) {
+      log.error('Failed to get contacts: ' + error);
+    }
+    client();
+  } else if (prompt.command === '/messages') {
+    try {
+      console.log(await skype.messages());
+    } catch (error) {
+      log.error('Failed to get messages: ' + error);
+    }
+    client();
+  } else if (prompt.command === '/exit') {
+    process.exit();
+  } else {
+    log.warning('Unknown command');
+    client();
+  }
+}
+
+async function start() {
+  if (!skype.isLoggedIn()) {
+    try {
+      const prompt = await promptGet(schema);
+      await skype.login(prompt.username, prompt.password);
+      log.info('Login successful');
+    } catch (error) {
+      log.error('Login failed: ' + error);
+    }
+  }
   client();
 }
 
-function client() {
-  console.log('\n\n#### skype-node ####\n' +
-    '/contacts to get contacts\n' +
-    '/messages to get messages\n' +
-    '/exit to exit');
-  prompt.get('command', (error, result) => {
-    if (result.command === '/contacts') {
-      skype.contacts()
-      .then((contacts) => { console.log(contacts); })
-      .catch((error) => { console.log(error); })
-      .finally(() => { client(); });
-
-    } else if (result.command === '/messages') {
-      skype.messages()
-      .then((messages) => { console.log(messages); })
-      .catch((error) => { console.log(error); })
-      .finally(() => { client(); });
-
-    } else if (error || result.command === '/exit') {
-      process.exit();
-    }
-  });
-}
+start();

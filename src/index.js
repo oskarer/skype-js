@@ -1,5 +1,3 @@
-import Deferred from 'es6-deferred';
-import log from 'loglevel';
 import Promise from 'bluebird';
 import storage from './utils/storage';
 
@@ -13,24 +11,25 @@ const skype = {};
 
 skype.login = login;
 
-skype.contacts = () => {
-  const getItem = Promise.promisify(storage.getItem);
-  return Promise.all([
+const getItem = Promise.promisify(storage.getItem);
+
+skype.contacts = async () => {
+  const credentials = await Promise.all([
     getItem('skypeToken'),
     getItem('username'),
-  ])
-  .then((result) => getContacts(...result));
+  ]);
+
+  return getContacts(...credentials);
 };
 
-skype.messages = () => {
-  const getItem = Promise.promisify(storage.getItem);
-  return Promise.all([
+skype.messages = async () => {
+  const credentials = await Promise.all([
     getItem('skypeToken'),
     getItem('registrationTokenParams'),
     getItem('messagesHost'),
     getItem('username'),
-  ])
-  .then((result) => getMessages(...result));
+  ]);
+  return getMessages(...credentials);
 };
 
 skype.isLoggedIn = () => {
