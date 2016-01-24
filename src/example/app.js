@@ -45,7 +45,7 @@ async function client() {
   } else if (prompt.command === '/exit') {
     process.exit();
   } else {
-    log.warning('Unknown command');
+    log.warn('Unknown command');
     client();
   }
 }
@@ -64,3 +64,7 @@ async function start() {
 }
 
 start();
+
+skype.events.on('NewMessage', (messages) => {
+  console.log(messages);
+});

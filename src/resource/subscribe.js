@@ -1,5 +1,4 @@
 import Deferred from 'es6-deferred';
-import log from 'loglevel';
 
 import request from '../utils/request';
 import {
@@ -7,7 +6,7 @@ import {
   SUBSCRIPTION_ENDPOINT,
 } from '../constants';
 
-export function subscribeToResources(
+export default function subscribe(
   registrationTokenParams,
   messagesHost) {
 

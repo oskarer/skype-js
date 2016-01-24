@@ -4,12 +4,12 @@ import storage from './utils/storage';
 import { login } from './authentication/login';
 import { getContacts } from './contacts';
 import { getMessages } from './messages';
-
-export { getRegistrationToken } from './authentication/registrationToken';
+import events from './events';
 
 const skype = {};
 
 skype.login = login;
+skype.events = events;
 
 const getItem = Promise.promisify(storage.getItem);
 

@@ -1,40 +1,44 @@
-import Deferred from 'es6-deferred';
 import log from 'loglevel';
-import request from './utils/request';
+import { postRequest } from './utils/request';
 import { HTTPS, POLL_ENDPOINT } from './constants';
 
-export function getMessages(
+export async function getMessages(
     skypeToken,
     registrationTokenParams,
     messagesHost,
     username) {
 
-  const deferred = new Deferred();
-
-  request.post(HTTPS + messagesHost + POLL_ENDPOINT, {
-    headers: {
-      RegistrationToken: registrationTokenParams.raw,
-    },
-  }, (error, response, body) => {
-    if (!error && response.statusCode === 200) {
-      parseMessages(JSON.parse(body), deferred);
+  try {
+    console.log(HTTPS + messagesHost + POLL_ENDPOINT, {
+      headers: {
+        RegistrationToken: registrationTokenParams.raw,
+      },
+    });
+    const [response, body] =
+      await postRequest(HTTPS + messagesHost + POLL_ENDPOINT, {
+        headers: {
+          RegistrationToken: registrationTokenParams.raw,
+        },
+      });
+    if (response.statusCode !== 200) {
+      throw response.statusCode;
     } else {
-      deferred.reject('Error getting messages; HTTP ' +
-        response.statusCode + ' ' + response['body']); // eslint-disable-line
+      return parseMessages(JSON.parse(body));
     }
-  });
+  } catch (error) {
+    return error;
+  }
 
-  function parseMessages(pollResult, deferred) {
+  function parseMessages(pollResult) {
     log.debug(pollResult);
     if (pollResult.eventMessages) {
       const messages = pollResult.eventMessages.filter((item) => {
         return item.resourceType === 'NewMessage';
       });
-      deferred.resolve(messages);
+      return messages;
     } else {
-      deferred.reject('Failed to parse messages');
+      return 'Failed to parse messages';
     }
   }
 
-  return deferred.promise;
 }

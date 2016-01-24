@@ -7,7 +7,8 @@ import storage from '../utils/storage';
 import request from '../utils/request';
 import { LOGIN_URL, DEFAULT_MESSAGES_HOST } from '../constants';
 import { getRegistrationTokenParams } from './registrationToken';
-import { subscribeToResources } from './subscription';
+import { startPolling } from '../resource/poll';
+import subscribeToResources from '../resource/subscribe';
 import { getTimezone, getCurrentTime } from '../utils/helpers';
 
 
@@ -25,7 +26,9 @@ export async function login(username, password) {
       storage.setItem('registrationTokenParams', registrationTokenParams),
       storage.setItem('messagesHost', messagesHost),
     ]);
-    return await subscribeToResources(registrationTokenParams, messagesHost);
+    await subscribeToResources(registrationTokenParams, messagesHost);
+    startPolling(skypeToken, registrationTokenParams, messagesHost, username);
+    return;
   } catch (error) {
     throw error;
   }
@@ -33,8 +36,7 @@ export async function login(username, password) {
 
 async function sendLoginRequest(username, password) {
   try {
-    const formdata = await getFormData();
-    const { pie, etm } = formdata;
+    const { pie, etm } = await getFormData();
     const timezone_field = getTimezone(); // eslint-disable-line camelcase
     const js_time = getCurrentTime(); // eslint-disable-line camelcase
     const postData = {

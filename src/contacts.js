@@ -1,25 +1,24 @@
-import Deferred from 'es6-deferred';
-import request from './utils/request';
 import log from 'loglevel';
+import { getRequest } from './utils/request';
 import { HTTPS, CONTACTS_HOST } from './constants';
 
-export function getContacts(skypeToken, username) {
-  const deferred = new Deferred();
+export async function getContacts(skypeToken, username) {
   log.debug('Fetching contacts for', username);
-  request(HTTPS + CONTACTS_HOST +
-    '/contacts/v1/users/' + username + '/contacts',
-    {
-      headers: {
-        'X-Skypetoken': skypeToken,
-      },
-    },
-    (error, response, body) => {
-      if (!error && response.statusCode === 200) {
-        const contacts = JSON.parse(body).contacts;
-        deferred.resolve(contacts);
-      } else {
-        deferred.reject('Failed to load contacts.');
-      }
-    });
-  return deferred.promise;
+  try {
+    const [response, body] =
+      await getRequest(HTTPS + CONTACTS_HOST +
+        '/contacts/v1/users/' + username + '/contacts', {
+          headers: {
+            'X-Skypetoken': skypeToken,
+          },
+        });
+    if (response.statusCode !== 200) {
+      throw response.statusCode;
+    } else {
+      return JSON.parse(body).contacts;
+    }
+  } catch (error) {
+    return 'Error retrieving contacts: ' + error;
+  }
+
 }
