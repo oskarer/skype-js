@@ -5,7 +5,6 @@ import storage from '../utils/storage';
 import { postRequest, getRequest } from '../utils/request';
 import { LOGIN_URL, DEFAULT_MESSAGES_HOST } from '../constants';
 import { getRegistrationTokenParams } from './registrationToken';
-import { startPolling } from '../resource/poll';
 import subscribeToResources from '../resource/subscribe';
 import { getTimezone, getCurrentTime } from '../utils/helpers';
 
@@ -25,7 +24,6 @@ export async function login(username, password) {
       storage.setItem('messagesHost', messagesHost),
     ]);
     await subscribeToResources(registrationTokenParams, messagesHost);
-    startPolling(skypeToken, registrationTokenParams, messagesHost, username);
     return;
   } catch (error) {
     throw error;

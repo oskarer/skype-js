@@ -4,6 +4,8 @@ import storage from './utils/storage';
 import { login } from './authentication/login';
 import { getContacts } from './contacts';
 import { getMessages } from './messages';
+import sendMessage from './message/sendMessage';
+import poll from './resource/poll';
 import events from './events';
 
 const skype = {};
@@ -30,6 +32,24 @@ skype.messages = async () => {
     getItem('username'),
   ]);
   return getMessages(...credentials);
+};
+
+skype.sendMessage = async (conversationId, message) => {
+  const [regToken, messagesHost] = await Promise.all([
+    getItem('registrationTokenParams'),
+    getItem('messagesHost'),
+  ]);
+  return sendMessage(conversationId, message, regToken, messagesHost);
+};
+
+skype.poll = async () => {
+  const credentials = await Promise.all([
+    getItem('skypeToken'),
+    getItem('registrationTokenParams'),
+    getItem('messagesHost'),
+    getItem('username'),
+  ]);
+  return poll(...credentials);
 };
 
 skype.isLoggedIn = () => {

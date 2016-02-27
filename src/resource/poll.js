@@ -1,39 +1,46 @@
 import log from 'loglevel';
+import _ from 'lodash';
 import { postRequest } from '../utils/request';
 import { HTTPS, POLL_ENDPOINT } from '../constants';
 import events from '../events';
 
-export function startPolling(
+export default function (
     skypeToken,
     registrationTokenParams,
     messagesHost,
     username) {
-  console.log('startPolling');
   setInterval(poll, 2000);
 
-  function poll() {
-    console.log('I  poll');
-    postRequest(HTTPS + messagesHost + POLL_ENDPOINT, {
-      headers: {
-        RegistrationToken: registrationTokenParams.raw,
-      },
-    }).then((error, response, body) => {
-      console.log(error);
-      if (!error && response.statusCode === 200) {
-        parseMessages(JSON.parse(body));
-      }
-    });
+  async function poll() {
+    let [response, body] = // eslint-disable-line
+      await postRequest(HTTPS + messagesHost + POLL_ENDPOINT, {
+        headers: {
+          RegistrationToken: registrationTokenParams.raw,
+        },
+      });
+    console.log(response.statusCode);
+    if (response.statusCode === 200) {
+      parseMessages(JSON.parse(body));
+    }
   }
 
   function parseMessages(pollResult) {
-    try {
-      const messages = pollResult.eventMessages.filter((item) => {
-        return item.resourceType === 'NewMessage';
+    const messages = pollResult.eventMessages.filter((item) => {
+      return item.resourceType === 'NewMessage';
+    });
+    if (messages.length > 0) {
+      log.info(messages.length + ' new messages!');
+      const filtered = _(messages).map((message) => {
+        log.debug(message);
+        return {
+          id: message.resource.id,
+          received: message.time,
+          content: message.resource.content,
+          from: message.resource.imdisplayname,
+          conversation: message.resource.conversationLink.split('/').last(),
+        };
       });
-      console.log(messages);
-      events.emit('NewMessage', messages);
-    } catch (error) {
-      log.error('Failed parsing messages: ' + error);
+      events.emit('NewMessage', filtered.value());
     }
   }
 
