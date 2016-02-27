@@ -1,4 +1,3 @@
-require('babel-polyfill');
 import Promise from 'bluebird';
 import log from 'loglevel';
 import prompt from 'prompt';

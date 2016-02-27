@@ -1,4 +1,3 @@
-require('babel-polyfill');
 import log from 'loglevel';
 import { postRequest } from '../utils/request';
 import { HTTPS, POLL_ENDPOINT } from '../constants';

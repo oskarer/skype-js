@@ -35,10 +35,7 @@ skype.messages = async () => {
 skype.isLoggedIn = () => {
   const stExpiryDate = storage.getItemSync('stExpiryDate');
   const expires = new Date(stExpiryDate);
-  if (expires > new Date()) {
-    return true;
-  }
-  return false;
+  return expires > new Date();
 };
 
 export default skype;
