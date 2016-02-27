@@ -1,4 +1,13 @@
-import EventEmitter from 'events';
+// import { EventEmitter } from 'events';
+// let emitter = new EventEmitter();
+// console.log(EventEmitter);
+// console.log(emitter);
+// export default emitter;
+
+const EventEmitter = require('events');
 
 class MyEmitter extends EventEmitter {}
-export default new MyEmitter();
+
+const myEmitter = new MyEmitter();
+
+export default myEmitter;

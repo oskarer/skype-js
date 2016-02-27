@@ -3,7 +3,6 @@ import storage from './utils/storage';
 
 import { login } from './authentication/login';
 import { getContacts } from './contacts';
-import { getMessages } from './messages';
 import sendMessage from './message/sendMessage';
 import poll from './resource/poll';
 import events from './events';
@@ -22,16 +21,6 @@ skype.contacts = async () => {
   ]);
 
   return getContacts(...credentials);
-};
-
-skype.messages = async () => {
-  const credentials = await Promise.all([
-    getItem('skypeToken'),
-    getItem('registrationTokenParams'),
-    getItem('messagesHost'),
-    getItem('username'),
-  ]);
-  return getMessages(...credentials);
 };
 
 skype.sendMessage = async (conversationId, message) => {

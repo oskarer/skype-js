@@ -10,37 +10,48 @@ export default function (
     messagesHost,
     username) {
   setInterval(poll, 2000);
-
+  // return poll();
   async function poll() {
-    let [response, body] = // eslint-disable-line
-      await postRequest(HTTPS + messagesHost + POLL_ENDPOINT, {
-        headers: {
-          RegistrationToken: registrationTokenParams.raw,
-        },
-      });
-    console.log(response.statusCode);
-    if (response.statusCode === 200) {
-      parseMessages(JSON.parse(body));
+    try {
+      let [response, body] = // eslint-disable-line
+        await postRequest(HTTPS + messagesHost + POLL_ENDPOINT, {
+          headers: {
+            RegistrationToken: registrationTokenParams.raw,
+          },
+        });
+      if (response.statusCode === 200) {
+        const result = JSON.parse(body);
+        if (result.eventMessages) {
+          parseMessages(result.eventMessages);
+        }
+      } else {
+        throw 'Connection failed, code: ' + response.statusCode;
+      }
+    } catch (error) {
+      events.emit('error', 'Polling error: ' + error);
     }
   }
 
-  function parseMessages(pollResult) {
-    const messages = pollResult.eventMessages.filter((item) => {
-      return item.resourceType === 'NewMessage';
+  function parseMessages(eventMessages) {
+    const messages = eventMessages.filter((item) => {
+      return item.resourceType === 'NewMessage' &&
+        (item.resource.messagetype === 'RichText' ||
+        item.resource.messagetype === 'Text');
     });
     if (messages.length > 0) {
-      log.info(messages.length + ' new messages!');
-      const filtered = _(messages).map((message) => {
-        log.debug(message);
+      // log.info(messages.length + ' new messages!');
+      const filteredMessages = _(messages).map((message) => {
         return {
           id: message.resource.id,
           received: message.time,
           content: message.resource.content,
           from: message.resource.imdisplayname,
-          conversation: message.resource.conversationLink.split('/').last(),
+          conversation: _.last(message.resource.conversationLink.split('/')),
         };
+      }).value();
+      _.each(filteredMessages, (message) => {
+        events.emit('textMessage', message);
       });
-      events.emit('NewMessage', filtered.value());
     }
   }
 

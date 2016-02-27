@@ -32,10 +32,12 @@ prompt.start();
 
 const promptGet = Promise.promisify(prompt.get);
 
+let messages = [];
+
 async function client() {
   console.log('\n\n#### skype-node ####\n' +
   '/contacts to get contacts\n' +
-  '/messages to get messages\n' +
+  '/messages to view received messages\n' +
   '/send to send message\n' +
   '/poll to start polling\n' +
   '/exit to exit');
@@ -49,11 +51,7 @@ async function client() {
     }
     client();
   } else if (prompt.command === '/messages') {
-    try {
-      console.log(await skype.messages());
-    } catch (error) {
-      log.error('Failed to get messages: ' + error);
-    }
+    console.log(messages);
     client();
   } else if (prompt.command === '/send') {
     const sendPrompt = await promptGet(sendSchema);
@@ -65,6 +63,8 @@ async function client() {
     client();
   } else if (prompt.command === '/poll') {
     skype.poll();
+    console.log('Started polling');
+    client();
   } else if (prompt.command === '/exit') {
     process.exit();
   } else {
@@ -88,6 +88,10 @@ async function start() {
 
 start();
 
-skype.events.on('NewMessage', (messages) => {
-  console.log(messages);
+skype.events.on('error', (error) => {
+  console.log(error);
+});
+
+skype.events.on('textMessage', (message) => {
+  console.log(message);
 });
