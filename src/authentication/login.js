@@ -16,13 +16,12 @@ export async function login(username, password) {
     const { registrationTokenParams, messagesHost } =
       await getRegistrationTokenParams(skypeToken, DEFAULT_MESSAGES_HOST);
 
-    await Promise.all([
-      storage.setItem('username', username),
-      storage.setItem('skypeToken', skypeToken),
-      storage.setItem('stExpiryDate', expiryDate),
-      storage.setItem('registrationTokenParams', registrationTokenParams),
-      storage.setItem('messagesHost', messagesHost),
-    ]);
+    storage.setItem('username', username);
+    storage.setItem('skypeToken', skypeToken);
+    storage.setItem('stExpiryDate', expiryDate);
+    storage.setItem('registrationTokenParams', registrationTokenParams);
+    storage.setItem('messagesHost', messagesHost);
+
     await subscribeToResources(registrationTokenParams, messagesHost);
     return;
   } catch (error) {

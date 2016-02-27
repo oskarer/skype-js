@@ -19,28 +19,26 @@ export default function (
             RegistrationToken: registrationTokenParams.raw,
           },
         });
-      if (response.statusCode === 200) {
-        const result = JSON.parse(body);
-        if (result.eventMessages) {
-          parseMessages(result.eventMessages);
-        }
-      } else {
-        throw 'Connection failed, code: ' + response.statusCode;
+      if (response.statusCode !== 200) {
+        throw 'Connection failed, code ' + response.statusCode;
+      }
+      const parsedBody = JSON.parse(body);
+      if (parsedBody.eventMessages) {
+        parseMessages(parsedBody.eventMessages);
       }
     } catch (error) {
-      events.emit('error', 'Polling error: ' + error);
+      events.emit('error', 'Polling failed: ' + error);
     }
   }
 
   function parseMessages(eventMessages) {
-    const messages = eventMessages.filter((item) => {
-      return item.resourceType === 'NewMessage' &&
-        (item.resource.messagetype === 'RichText' ||
-        item.resource.messagetype === 'Text');
-    });
-    if (messages.length > 0) {
-      // log.info(messages.length + ' new messages!');
-      const filteredMessages = _(messages).map((message) => {
+    const messages = _.chain(eventMessages)
+      .filter((item) => {
+        return item.resourceType === 'NewMessage' &&
+          (item.resource.messagetype === 'RichText' ||
+          item.resource.messagetype === 'Text');
+      })
+      .map((message) => {
         return {
           id: message.resource.id,
           received: message.time,
@@ -48,11 +46,11 @@ export default function (
           from: message.resource.imdisplayname,
           conversation: _.last(message.resource.conversationLink.split('/')),
         };
-      }).value();
-      _.each(filteredMessages, (message) => {
-        events.emit('textMessage', message);
-      });
-    }
+      })
+      .value();
+    _.each(messages, (message) => {
+      events.emit('textMessage', message);
+    });
   }
 
 }

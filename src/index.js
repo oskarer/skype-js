@@ -1,6 +1,4 @@
-import Promise from 'bluebird';
 import storage from './utils/storage';
-
 import { login } from './authentication/login';
 import { getContacts } from './contacts';
 import sendMessage from './message/sendMessage';
@@ -12,37 +10,37 @@ const skype = {};
 skype.login = login;
 skype.events = events;
 
-const getItem = Promise.promisify(storage.getItem);
+console.log(storage.getItem)
 
 skype.contacts = async () => {
-  const credentials = await Promise.all([
-    getItem('skypeToken'),
-    getItem('username'),
-  ]);
+  const credentials = [
+    storage.getItem('skypeToken'),
+    storage.getItem('username'),
+  ];
 
   return getContacts(...credentials);
 };
 
 skype.sendMessage = async (conversationId, message) => {
-  const [regToken, messagesHost] = await Promise.all([
-    getItem('registrationTokenParams'),
-    getItem('messagesHost'),
-  ]);
+  const [regToken, messagesHost] = [
+    storage.getItem('registrationTokenParams'),
+    storage.getItem('messagesHost'),
+  ];
   return sendMessage(conversationId, message, regToken, messagesHost);
 };
 
 skype.poll = async () => {
-  const credentials = await Promise.all([
-    getItem('skypeToken'),
-    getItem('registrationTokenParams'),
-    getItem('messagesHost'),
-    getItem('username'),
-  ]);
+  const credentials = [
+    storage.getItem('skypeToken'),
+    storage.getItem('registrationTokenParams'),
+    storage.getItem('messagesHost'),
+    storage.getItem('username'),
+  ];
   return poll(...credentials);
 };
 
 skype.isLoggedIn = () => {
-  const stExpiryDate = storage.getItemSync('stExpiryDate');
+  const stExpiryDate = storage.getItem('stExpiryDate');
   const expires = new Date(stExpiryDate);
   return expires > new Date();
 };

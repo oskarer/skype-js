@@ -45,7 +45,7 @@
     "js-sha256": "^0.3.0",
     "lodash": "^4.5.1",
     "loglevel": "^1.4.0",
-    "node-persist": "0.0.8",
+    "node-localstorage": "^1.1.2",
     "request": "^2.69.0",
     "tough-cookie": "^2.2.1",
     "tough-cookie-filestore": "0.0.1",
