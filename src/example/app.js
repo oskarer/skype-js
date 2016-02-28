@@ -79,8 +79,10 @@ async function start() {
       const prompt = await promptGet(loginSchema);
       await skype.login(prompt.username, prompt.password);
       log.info('Login successful');
+      client();
     } catch (error) {
       log.error('Login failed: ' + error);
+      start();
     }
   }
   client();
@@ -93,5 +95,5 @@ skype.events.on('error', (error) => {
 });
 
 skype.events.on('textMessage', (message) => {
-  console.log(message);
+  messages = messages.concat(message);
 });

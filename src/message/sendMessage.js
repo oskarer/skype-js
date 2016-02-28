@@ -1,18 +1,20 @@
-import { postRequest } from '../utils/request';
+import request from '../utils/request';
 import { HTTPS } from '../constants';
 
 export default async function(conversationId, message, registrationTokenParams,
   messagesHost) {
-  const body = JSON.stringify({
+  const body = {
     content: message,
     messagetype: 'RichText',
     contenttype: 'text',
-  });
-  return postRequest(HTTPS + messagesHost + '/v1/users/ME/conversations/' +
-    conversationId + '/messages', {
-      body,
-      headers: {
-        RegistrationToken: registrationTokenParams.raw,
-      },
-    });
+  };
+  const headers = {
+    RegistrationToken: registrationTokenParams.raw,
+  };
+  return request
+    .post(HTTPS + messagesHost + '/v1/users/ME/conversations/' +
+      conversationId + '/messages')
+    .set(headers)
+    .send(body)
+    .end();
 }

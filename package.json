@@ -1,26 +1,28 @@
 {
-  "name": "skype-node",
+  "name": "skype-js",
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "watch": "babel src -w --out-dir=dist",
     "test": "mocha",
+    "build-browser": "webpack",
     "coverage": "babel-node ./node_modules/istanbul/lib/cli cover node_modules/mocha/bin/_mocha -- --recursive test/**/*.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oskarer/skype-node.git"
+    "url": "git+https://github.com/oskarer/skype-js.git"
   },
   "author": "Oskar Eriksson",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/oskarer/skype-node/issues"
+    "url": "https://github.com/oskarer/skype-js/issues"
   },
-  "homepage": "https://github.com/oskarer/skype-node#readme",
+  "homepage": "https://github.com/oskarer/skype-js#readme",
   "devDependencies": {
     "babel-cli": "^6.5.1",
     "babel-eslint": "^5.0.0",
+    "babel-loader": "^6.2.4",
     "babel-plugin-transform-runtime": "^6.5.2",
     "babel-preset-es2015": "^6.5.0",
     "babel-preset-stage-3": "^6.5.0",
@@ -33,22 +35,23 @@
     "eslint-plugin-react": "^4.1.0",
     "isparta": "^4.0.0",
     "istanbul": "^1.0.0-alpha",
+    "json-loader": "^0.5.4",
     "mocha": "^2.4.5",
     "mocha-lcov-reporter": "^1.2.0",
-    "prompt": "^1.0.0"
+    "prompt": "^1.0.0",
+    "webpack": "^1.12.14"
   },
   "dependencies": {
     "big-integer": "^1.6.12",
     "bluebird": "^3.3.3",
     "cheerio": "^0.20.0",
-    "es6-deferred": "^1.3.0",
     "js-sha256": "^0.3.0",
     "lodash": "^4.5.1",
     "loglevel": "^1.4.0",
     "node-localstorage": "^1.1.2",
-    "request": "^2.69.0",
-    "tough-cookie": "^2.2.1",
-    "tough-cookie-filestore": "0.0.1",
+    "superagent": "^1.7.2",
+    "superagent-promise-plugin": "^2.1.0",
+    "superagent-use": "0.0.1",
     "url": "^0.11.0"
   }
 }

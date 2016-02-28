@@ -1,19 +1,17 @@
-import Deferred from 'es6-deferred';
 import url from 'url';
 import log from 'loglevel';
-import request from '../request';
+import request from '../utils/request';
 import {
   HTTPS,
   CLIENTINFO_NAME,
   CLIENTINFO_VERSION,
   LOCKANDKEY_APPID,
   LOCKANDKEY_SECRET } from '../constants';
-import { getCurrentTime, getMac256Hash } from '../utils';
+import { getCurrentTime, getMac256Hash } from '../utils/helpers';
 
-export function getRegistrationTokenParams(
+export async function getRegistrationTokenParams(
   skypeToken,
-  messagesHost,
-  deferred = new Deferred()) {
+  messagesHost) {
 
   const currentTime = getCurrentTime();
   const lockAndKeyResponse = getMac256Hash(
@@ -22,37 +20,35 @@ export function getRegistrationTokenParams(
     LOCKANDKEY_SECRET);
   const headers = constructHeaders();
 
-  request.post(HTTPS + messagesHost + '/v1/users/ME/endpoints', {
-    headers,
-    body: '{}',
-  }, (error, response, body) => {
-    if (!error && response.statusCode === 301) {
-      // Another message host
-      const locationHeader = response.headers.location;
-      const location = url.parse(locationHeader);
-      log.trace('301 moved: ', location.host);
-      getRegistrationTokenParams(skypeToken, location.host, deferred);
+  const response = await request
+    .post(HTTPS + messagesHost + '/v1/users/ME/endpoints')
+    .set(headers)
+    .send('{}')
+    .end();
 
-    } else if (!error && response.statusCode === 201) {
+  if (response.statusCode === 301) {
+    // Another message host
+    const locationHeader = response.headers.location;
+    const location = url.parse(locationHeader);
+    log.info('301 moved, redirecting: ', location.host);
+    return getRegistrationTokenParams(skypeToken, location.host);
 
-      const registrationTokenHeader = response.headers['set-registrationtoken'];
-      const registrationTokenParams = parseHeader(registrationTokenHeader);
-      if (registrationTokenParams.registrationToken &&
-        registrationTokenParams.expires &&
-        registrationTokenParams.endpointId) {
-        registrationTokenParams.expires =
-          parseInt(registrationTokenParams.expires, 10);
-        deferred.resolve({ registrationTokenParams, messagesHost });
+  } else if (response.statusCode === 201) {
 
-      } else {
-        deferred.reject('Failed to parse registrationToken,' +
-          ' expires or endpointId.');
-      }
-    } else {
-      deferred.reject('Failed to get registrationToken.' +
-        error + JSON.stringify(response));
+    const registrationTokenHeader = response.headers['set-registrationtoken'];
+    const registrationTokenParams = parseHeader(registrationTokenHeader);
+    if (registrationTokenParams.registrationToken &&
+      registrationTokenParams.expires &&
+      registrationTokenParams.endpointId) {
+      registrationTokenParams.expires =
+        parseInt(registrationTokenParams.expires, 10);
+      return { registrationTokenParams, messagesHost };
+
     }
-  });
+    throw 'Failed to parse registrationToken, expires or endpointId.';
+  } else {
+    throw 'Failed to get registrationToken.';
+  }
 
   function constructHeaders() {
     const LockAndKey = 'appId=' + LOCKANDKEY_APPID +
@@ -82,6 +78,4 @@ export function getRegistrationTokenParams(
         raw: header,
       });
   }
-
-  return deferred.promise;
 }

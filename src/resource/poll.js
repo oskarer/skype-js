@@ -1,6 +1,5 @@
-import log from 'loglevel';
 import _ from 'lodash';
-import { postRequest } from '../utils/request';
+import request from '../utils/request';
 import { HTTPS, POLL_ENDPOINT } from '../constants';
 import events from '../events';
 
@@ -13,18 +12,18 @@ export default function (
   // return poll();
   async function poll() {
     try {
-      let [response, body] = // eslint-disable-line
-        await postRequest(HTTPS + messagesHost + POLL_ENDPOINT, {
-          headers: {
-            RegistrationToken: registrationTokenParams.raw,
-          },
-        });
+      const headers = {
+        RegistrationToken: registrationTokenParams.raw,
+      };
+      const response = await request
+        .post(HTTPS + messagesHost + POLL_ENDPOINT)
+        .set(headers)
+        .end();
       if (response.statusCode !== 200) {
         throw 'Connection failed, code ' + response.statusCode;
       }
-      const parsedBody = JSON.parse(body);
-      if (parsedBody.eventMessages) {
-        parseMessages(parsedBody.eventMessages);
+      if (response.body.eventMessages) {
+        parseMessages(response.body.eventMessages);
       }
     } catch (error) {
       events.emit('error', 'Polling failed: ' + error);

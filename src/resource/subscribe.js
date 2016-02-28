@@ -1,16 +1,13 @@
-import Deferred from 'es6-deferred';
-
 import request from '../utils/request';
 import {
   HTTPS,
   SUBSCRIPTION_ENDPOINT,
 } from '../constants';
 
-export default function subscribe(
+export default async function subscribe(
   registrationTokenParams,
   messagesHost) {
 
-  const deferred = new Deferred();
   const interestedResources = [
     '/v1/threads/ALL',
     '/v1/users/ME/contacts/ALL',
@@ -25,15 +22,12 @@ export default function subscribe(
   const headers = {
     RegistrationToken: registrationTokenParams.raw,
   };
-  request.post(HTTPS + messagesHost + SUBSCRIPTION_ENDPOINT, {
-    body,
-    headers,
-  }, (error, response, body) => {
-    if (!error && response.statusCode === 201) {
-      deferred.resolve();
-    } else {
-      deferred.reject('FAIL', error);
-    }
-  });
-  return deferred.promise;
+  const response = await request
+    .post(HTTPS + messagesHost + SUBSCRIPTION_ENDPOINT)
+    .set(headers)
+    .send(body)
+    .end();
+  if (response.statusCode !== 201) {
+    throw 'Failed to subscribe to resources, code ' + response.statusCode;
+  }
 }
